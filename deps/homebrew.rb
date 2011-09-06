@@ -1,5 +1,5 @@
 dep 'homebrew binary in place' do
-  requires 'homebrew installed'
+  requires 'homebrew git repo'
   met? { which 'brew' }
   meet {
     cd var(:homebrew_prefix) do
@@ -8,18 +8,24 @@ dep 'homebrew binary in place' do
   }
 end
 
-dep 'homebrew installed' do
+dep 'homebrew git repo' do
   requires_when_unmet 'writable.fhs', 'git'
-  define_var :homebrew_prefix, :default => '/usr/local', :message => "Where would you like homebrew installed"
-  setup {
-    if Babushka::BrewHelper.present?
-      set :homebrew_prefix, Babushka::BrewHelper.prefix # Use the existing homebrew install if there is one
+  def prefix
+    Babushka::BrewHelper.present? ? Babushka::BrewHelper.prefix : '/usr/local'
+  end
+  def repo
+    Babushka::GitRepo.new prefix
+  end
+  met? {
+    if repo.exists? && !repo.include?('ec2d785212af2c35b57f8c405b0855169d24dc0c')
+      unmeetable "There is a non-homebrew repo at #{prefix}."
+    else
+      repo.exists?
     end
   }
-  met? { File.exists? var(:homebrew_prefix) / '.git' }
   meet {
     git "git://github.com/mxcl/homebrew.git" do |path|
-      log_shell "Gitifying #{var :homebrew_prefix}", "cp -r .git '#{var :homebrew_prefix}'"
+      log_shell "Gitifying #{prefix}", "cp -r .git '#{prefix}'"
     end
   }
 end
