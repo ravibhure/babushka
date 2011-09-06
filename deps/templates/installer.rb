@@ -1,11 +1,9 @@
 meta :installer do
   accepts_list_for :source
-  accepts_list_for :extra_source
   accepts_list_for :provides, :basename, :choose_with => :via
   accepts_list_for :prefix, %w[~/Applications /Applications]
 
   template {
-    prepare { setup_source_uris }
     met? { in_path? }
 
     # At the moment, we just try to install every .[m]pkg in the archive.

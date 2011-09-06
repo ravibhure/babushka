@@ -1,4 +1,6 @@
 module Babushka
+  class DepNotFound < StandardError
+  end
   class DepError < StandardError
   end
   class DepArgumentError < ArgumentError

@@ -15,11 +15,14 @@ include Babushka::DSL
 
 require 'rubygems'
 require 'rspec'
+require 'fakeweb'
 
 # RSpec::Core::Example.send :include, Babushka::Helpers
 RSpec::Core::ExampleGroup.send :include, Babushka::LogHelpers
 RSpec::Core::ExampleGroup.send :include, Babushka::ShellHelpers
 RSpec::Core::ExampleGroup.send :include, Babushka::PathHelpers
+
+FakeWeb.allow_net_connect = false
 
 puts "babushka@#{`git rev-parse --short HEAD`.strip} | ruby-#{RUBY_VERSION} | rspec-#{RSpec::Version::STRING}"
 

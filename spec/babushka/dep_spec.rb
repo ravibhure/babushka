@@ -6,31 +6,31 @@ describe "Dep.new" do
     L{
       Dep.new "", Base.sources.anonymous, {}, nil
     }.should raise_error(DepError, "Deps can't have empty names.")
-    Dep("carriage\rreturn").should be_nil
+    Base.sources.dep_for("").should be_nil
   end
   it "should reject deps with nonprintable characters in their names" do
     L{
       Dep.new "carriage\rreturn", Base.sources.anonymous, {}, nil
     }.should raise_error(DepError, "The dep name 'carriage\rreturn' contains nonprintable characters.")
-    Dep("carriage\rreturn").should be_nil
+    Base.sources.dep_for("carriage\rreturn").should be_nil
   end
   it "should reject deps slashes in their names" do
     L{
       Dep.new "slashes/invalidate names", Base.sources.anonymous, {}, nil
     }.should raise_error(DepError, "The dep name 'slashes/invalidate names' contains '/', which isn't allowed (logs are named after deps, and filenames can't contain '/').")
-    Dep("slashes/invalidate names").should be_nil
+    Base.sources.dep_for("slashes/invalidate names").should be_nil
   end
   it "should reject deps colons in their names" do
     L{
       Dep.new "colons:invalidate names", Base.sources.anonymous, {}, nil
     }.should raise_error(DepError, "The dep name 'colons:invalidate names' contains ':', which isn't allowed (colons separate dep and template names from source prefixes).")
-    Dep("colons:invalidate names").should be_nil
+    Base.sources.dep_for("colons:invalidate names").should be_nil
   end
   it "should create deps with valid names" do
     L{
       Dep.new("valid dep name", Base.sources.anonymous, {}, nil)
     }.should change(Base.sources.anonymous.deps, :count).by(1)
-    Dep("valid dep name").should be_an_instance_of(Dep)
+    Base.sources.dep_for("valid dep name").should be_an_instance_of(Dep)
   end
   context "without template" do
     before {

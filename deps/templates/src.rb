@@ -1,6 +1,5 @@
 meta :src do
   accepts_list_for :source
-  accepts_list_for :extra_source
   accepts_list_for :provides, :basename
   accepts_value_for :prefix, '/usr/local'
 
@@ -35,7 +34,6 @@ meta :src do
 
   template {
     requires 'build tools', 'curl.managed'
-    prepare { setup_source_uris }
     met? { in_path? }
     meet { process_sources { call_task :process_source } }
   }

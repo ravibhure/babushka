@@ -1,7 +1,6 @@
 meta :app do
   accepts_list_for :source
   accepts_list_for :prefix, %w[~/Applications /Applications]
-  accepts_list_for :extra_source
   accepts_list_for :provides, :name
   accepts_block_for :current_version do |path| nil end
   accepts_block_for :latest_version
@@ -35,10 +34,6 @@ meta :app do
   end
 
   template {
-    prepare {
-      setup_source_uris
-    }
-
     met? {
       discover_latest_version
       installed = app_dir app_name_match

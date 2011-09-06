@@ -5,7 +5,7 @@ module Babushka
     # known sources.
     # If no dep matching +spec+ is found, nil is returned.
     def Dep spec, opts = {}
-      Base.sources.dep_for spec, opts
+      Base.sources.dep_for(spec, opts) || raise(Babushka::DepNotFound, "Can't find a dep called '#{spec}'.")
     end
 
     # Define and return a dep named +name+, and whose implementation is found
