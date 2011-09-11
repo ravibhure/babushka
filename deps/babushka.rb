@@ -112,7 +112,9 @@ dep 'installed.babushka' do
   setup {
     unmeetable "The current user, #{shell('whoami')}, can't write to #{repo.path}." unless repo.path.hypothetically_writable?
   }
-  met? { repo.exists? }
+  met? {
+    repo.exists?
+  }
   meet {
     log_block "Cloning #{babushka_source} into #{repo.path}" do
       repo.clone! babushka_source

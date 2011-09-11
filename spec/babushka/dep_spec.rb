@@ -376,6 +376,84 @@ describe "calling met? on a single dep" do
   after { Base.sources.anonymous.deps.clear! }
 end
 
+describe "Dep call order" do
+  it "should run the components in the right order when checking met?" do
+    list = make_order_dep 'met? order'
+    Dep('met? order').met?
+    list.should == [
+      "met? order / setup",
+      "met? order / met?"
+    ]
+  end
+  it "should run the components in the right order when checking met? and not met" do
+    list = make_order_dep 'met? order unmet',
+      :met? => L{ false }
+    Dep('met? order unmet').met?
+    list.should == [
+      "met? order unmet / setup",
+      "met? order unmet / met?"
+    ]
+  end
+  it "should run the components in the right order when running meet" do
+    list = make_order_dep 'meet order', :met? => L{ @run }, :meet => L{ @run = true }
+    Dep('meet order').meet
+    list.should == [
+      "meet order / setup",
+      "meet order / met?",
+      "meet order / prepare",
+      "meet order / before",
+      "meet order / meet",
+      "meet order / after",
+      "meet order / met?"
+    ]
+  end
+  context "with requirements" do
+    it "should run the components in the right order when checking met?" do
+      list = make_order_dep 'met? order with requirements',
+        :requires => 'met? order requires',
+        :requires_when_unmet => 'met? order requires_when_unmet'
+      Dep('met? order with requirements').met?
+      list.should == [
+        "met? order with requirements / setup",
+        "met? order requires / met?",
+        "met? order with requirements / met?"
+      ]
+    end
+    it "should run the components in the right order when checking met? and not met" do
+      list = make_order_dep 'met? order with requirements unmet',
+        :requires => 'met? order unmet requires',
+        :requires_when_unmet => 'met? order unmet requires_when_unmet',
+        :met? => L{ false }
+      Dep('met? order with requirements unmet').met?
+      list.should == [
+        "met? order with requirements unmet / setup",
+        "met? order unmet requires / met?",
+        "met? order with requirements unmet / met?",
+        "met? order unmet requires_when_unmet / met?"
+      ]
+    end
+    it "should run the components in the right order when running meet" do
+      list = make_order_dep 'meet order with requirements',
+        :requires => 'meet order requires',
+        :requires_when_unmet => 'meet order requires_when_unmet',
+        :met? => L{ @run },
+        :meet => L{ @run = true }
+      Dep('meet order with requirements').meet
+      list.should == [
+        "meet order with requirements / setup",
+        "meet order requires / met?",
+        "meet order with requirements / met?",
+        "meet order with requirements / prepare",
+        "meet order requires_when_unmet / met?",
+        "meet order with requirements / before",
+        "meet order with requirements / meet",
+        "meet order with requirements / after",
+        "meet order with requirements / met?"
+      ]
+    end
+  end
+end
+
 describe "exceptions" do
   it "should be unmet after an exception in met? {}" do
     dep 'exception met? test' do

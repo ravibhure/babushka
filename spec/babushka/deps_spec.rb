@@ -1,17 +1,27 @@
 require 'spec_helper'
 require 'dep_support'
 
-shared_examples_for "met?" do
+shared_examples_for "met?, when they are" do
   describe "met?" do
     before { Dep('a').met? }
-    it "should met?-check each dep exactly once" do
+    it "should met?-check each dep exactly once, except when-unmet deps" do
       %w[a b c d e f].each {|i| @yield_counts[i].should == @yield_counts_already_met }
     end
-    it "shouldn't run the meet-only dep" do
+    it "shouldn't run the when-unmet dep" do
       @yield_counts['g'].should == @yield_counts_none
     end
   end
 end
+
+shared_examples_for "met?, when they aren't" do
+  describe "met?" do
+    before { Dep('a').met? }
+    it "should met?-check each dep exactly once, including when-unmet deps" do
+      %w[a b c d e f g].each {|i| @yield_counts[i].should == @yield_counts_already_met }
+    end
+  end
+end
+
 
 describe "an already met dep tree" do
   before {
@@ -24,7 +34,7 @@ describe "an already met dep tree" do
     make_counter_dep :name => 'f'
     make_counter_dep :name => 'g'
   }
-  it_should_behave_like "met?"
+  it_should_behave_like "met?, when they are"
   describe "meet" do
     before { Dep('a').meet }
     it "should meet no deps" do
@@ -48,7 +58,7 @@ describe "an unmeetable dep tree" do
     make_counter_dep :name => 'f', :met? => L{ false }
     make_counter_dep :name => 'g', :met? => L{ false }
   }
-  it_should_behave_like "met?"
+  it_should_behave_like "met?, when they aren't"
   describe "meet" do
     before { Dep('a').meet }
     it "should fail on the bootom-most dep" do
@@ -75,7 +85,7 @@ describe "a meetable dep tree" do
     make_counter_dep :name => 'f',                         :met? => L{ @yield_counts['f'][:met?] > 1 }
     make_counter_dep :name => 'g',                         :met? => L{ @yield_counts['g'][:met?] > 1 }
   }
-  it_should_behave_like "met?"
+  it_should_behave_like "met?, when they aren't"
   describe "meet" do
     before { Dep('a').meet }
     it "should meet each dep exactly once" do
@@ -96,7 +106,7 @@ describe "a partially meetable dep tree" do
     make_counter_dep :name => 'f',                         :met? => L{ @yield_counts['f'][:met?] > 1 }
     make_counter_dep :name => 'g',                         :met? => L{ @yield_counts['g'][:met?] > 1 }
   }
-  it_should_behave_like "met?"
+  it_should_behave_like "met?, when they aren't"
   describe "meet" do
     before { Dep('a').meet }
     it "should meet deps until one fails" do

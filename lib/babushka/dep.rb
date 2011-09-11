@@ -205,10 +205,21 @@ module Babushka
     #   true-like value, the dep is already met and there is nothing to do.
     #   Otherwise, the dep is unmet, and the following happens:
     #     - The +prepare+ task is run
+    #     - The dep's unmet dependencies (i.e. the content of
+    #       +requires_when_unmet+) are run recursively, in the same manner
+    #       as +requires+ is handled above. This dep's +#process+ will early-
+    #       exit in the same manner if any of the +requires_when_unmet+ deps
+    #       fail.
+    #
+    # - At this point, the dependencies are all handled, and the non-idempotent
+    #   part of this dep is run.
     #     - The +before+ task is run
     #     - If +before+ returned a true-like value, the +meet+ task is run.
     #       This is where the actual work of achieving the dep's aim is done.
     #     - If +meet+ returned a true-like value, the +after+ task is run.
+    #
+    #  - Now that the body of the dep has been run, the condition that was
+    #    previously unmet should now be satisfied. So, to finish the process,
     #     - Finally, the +met?+ task is run again, to check whether running
     #       +meet+ has achieved the dep's goal.
     #
@@ -296,13 +307,23 @@ module Babushka
       })
     end
 
+    # process_deps(:requires_when_unmet) and
+    # !task.opt(:dry_run) and
+    # log 'meet' do
+    #   process_task(:before) and process_task(:meet) and process_task(:after)
+    # end
+    # process_met_task
+
+
     def process_self
       cd context.run_in do
         process_met_task(:initial => true) {
+          process_task(:prepare)
+
           if task.opt(:dry_run)
+            process_deps(:requires_when_unmet)
             false # unmet
           else
-            process_task(:prepare)
             if !process_deps(:requires_when_unmet)
               false # install-time deps unmet
             else

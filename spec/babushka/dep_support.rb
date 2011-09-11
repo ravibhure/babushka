@@ -27,3 +27,26 @@ def make_counter_dep opts = {}
     }
   end
 end
+
+def make_order_dep dep_name, opts = {}
+  list = []
+
+  [opts[:requires], opts[:requires_when_unmet]].each {|requirement|
+    dep requirement do
+      met? { list << "#{name} / met?" }
+    end if requirement
+  }
+
+  dep dep_name do
+    requires opts[:requires]
+    requires_when_unmet opts[:requires_when_unmet]
+    DepContext.accepted_blocks.each {|dep_method|
+      send dep_method do
+        list << "#{name} / #{dep_method}"
+        (opts[dep_method] || default_block_for(dep_method)).call
+      end
+    }
+  end
+
+  list
+end
